@@ -3,22 +3,26 @@ stages {
     
     stage ('Env') {
     // Get Artifactory server instance, defined in the Artifactory Plugin administration page.
-    def server = Artifactory.server "SERVER_ID"
+    def server = Artifactory.server "Artifcatory1"
     // Create an Artifactory Maven instance.
     def rtMaven = Artifactory.newMavenBuild()
     def buildInfo
 	}
 	
     stage('Clone sources') {
+	    steps{
         git url: 'https://github.com/jfrogdev/project-examples.git'
+	    }
     }
 
     stage('Artifactory configuration') {
+	    steps{
         // Tool name from Jenkins configuration
         rtMaven.tool = "Maven-3.3.9"
         // Set Artifactory repositories for dependencies resolution and artifacts deployment.
         rtMaven.deployer releaseRepo:'libs-release-local', snapshotRepo:'libs-snapshot-local', server: server
         rtMaven.resolver releaseRepo:'libs-release', snapshotRepo:'libs-snapshot', server: server
+	    }
     }
 
     stage('Maven build') {
