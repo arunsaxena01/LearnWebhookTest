@@ -14,7 +14,8 @@ pipeline {
 	
 	stage("Build Project") {
             steps {
-                sh 'mvn -Dmaven.test.failure.ignore=true install' 
+               // sh 'mvn -Dmaven.test.failure.ignore=true install' 
+		  sh 'gradle clean compileJava test'
             }
 
     }
