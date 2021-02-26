@@ -1,5 +1,5 @@
 pipeline {
-  agent master
+  agent any
 
 // using the Timestamper plugin we can add timestamps to the console log
   options {
@@ -25,7 +25,7 @@ pipeline {
 	
 stage('Build') {
       agent {
-        master {
+        any {
           /*
            * Reuse the workspace on the agent defined at top-level of Pipeline but run inside a container.
            * In this case we are running a container with maven so we don't have to install specific versions
