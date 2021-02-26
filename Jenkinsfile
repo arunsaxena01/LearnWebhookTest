@@ -1,67 +1,46 @@
 pipeline {
-  agent any
+stages {
+    // Get Artifactory server instance, defined in the Artifactory Plugin administration page.
+    def server = Artifactory.server "SERVER_ID"
+    // Create an Artifactory Maven instance.
+    def rtMaven = Artifactory.newMavenBuild()
+    def buildInfo
 
-// using the Timestamper plugin we can add timestamps to the console log
-  options {
-    timestamps()
-  }
-    tools { 
-        maven 'Maven 3.3.9' 
-        jdk 'jdk8' 
+    stage('Clone sources') {
+        git url: 'https://github.com/jfrogdev/project-examples.git'
     }
-	
-  environment {
-    //Use Pipeline Utility Steps plugin to read information from pom.xml into env variables
-    IMAGE = readMavenPom().getArtifactId()
-    VERSION = readMavenPom().getVersion()
-  }
-	
-  stages {
-    stage("Checkout Project") {
-      steps {
 
-        // Script blocks can run any Groovy script
-	checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, 
-		  extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/arunsaxena01/DevOps-Demo-WebApp.git']]])
-      }
-
+    stage('Artifactory configuration') {
+        // Tool name from Jenkins configuration
+        rtMaven.tool = "Maven-3.3.9"
+        // Set Artifactory repositories for dependencies resolution and artifacts deployment.
+        rtMaven.deployer releaseRepo:'libs-release-local', snapshotRepo:'libs-snapshot-local', server: server
+        rtMaven.resolver releaseRepo:'libs-release', snapshotRepo:'libs-snapshot', server: server
     }
-	
-stage('Build') {
-      agent {
-        any {
-          /*
-           * Reuse the workspace on the agent defined at top-level of Pipeline but run inside a container.
-           * In this case we are running a container with maven so we don't have to install specific versions
-           * of maven directly on the agent
-           */
-          reuseNode true
-          image 'maven:3.5.0-jdk-8'
-        }
-      }
-      steps {
-        // using the Pipeline Maven plugin we can set maven configuration settings, publish test results, and annotate the Jenkins console
-        withMaven(options: [findbugsPublisher(), junitPublisher(ignoreAttachments: false)]) {
-          sh 'mvn clean findbugs:findbugs package'
-        }
-      }
-      post {
-        success {
-          // we only worry about archiving the jar file if the build steps are successful
-          archiveArtifacts(artifacts: '**/target/*.jar', allowEmptyArchive: true)
-        }
-      }
+
+    stage('Maven build') {
+        buildInfo = rtMaven.run pom: 'maven-example/pom.xml', goals: 'clean install'
     }
-	
 
-	
-  }
+    stage('Publish build info') {
+        server.publishBuildInfo buildInfo
+    }
+}
 
-  // All Stages and Pipeline can each have their own post section that is executed at different times
-  post {
+post {
     always {
 		 cleanWs()
       echo "Pipeline is done"
     }
   }
 }
+node {
+    stage 'Checkout'
+
+    checkout scm
+
+    stage 'Gradle Static Analysis'
+    withSonarQubeEnv {
+        sh "./gradlew clean sonarqube"
+    }
+}  
