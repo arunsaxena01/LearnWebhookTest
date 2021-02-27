@@ -32,7 +32,7 @@ node {
     }
 //
     stage('Deploy to Test') {
-	deploy adapters: [tomcat7(credentialsId: 'tomcat', path: '', url: 'http://52.255.157.89:8080/')], contextPath: '/QAWebapp', war: '**/*.war'
+	deploy adapters: [tomcat8(credentialsId: 'tomcat-1', path: '', url: 'http://52.255.157.89:8080/')], contextPath: '/QAWebapp', war: '**/*.war'
 	//jiraSendDeploymentInfo environmentId: 'Test', environmentName: 'QA test', environmentType: 'testing', serviceIds: ['http://52.255.157.89:8080/QAWebapp/'], site: 'devopsbc.atlassian.net', state: 'successful'
     }
 //
