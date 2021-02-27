@@ -39,5 +39,10 @@ node {
     stage('Store the Artifacts') {
         server.publishBuildInfo buildInfo
     }
+	
+      stage('UI Test') {
+        buildInfo = rtMaven.run pom: 'functionaltest/pom.xml', goals: 'test'
+	publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: '\\functionaltest\\target\\surefire-reports', reportFiles: 'index.html', reportName: 'UI Test Report', reportTitles: ''])
+    }
 
  }
