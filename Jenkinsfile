@@ -1,5 +1,5 @@
 node {
-    try{
+  
     // Get Artifactory server instance, defined in the Artifactory Plugin administration page
     
     	def server = Artifactory.server "artifactory"
@@ -21,12 +21,12 @@ node {
 	slackSend channel: 'devopsbc', message: "started ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)", tokenCredentialId: 'slack'
 //	    
     stage('Clone source') {
-        git url: 'https://github.com/srisritharan/WebApp.git'
+        git url: 'https://github.com/arunsaxena01/DevOps-Demo-WebApp.git'
     }
 //    
     stage('SonarQube Analysis') {
         withSonarQubeEnv(credentialsId: 'sonar-test', installationName: 'sonarqube') { // You can override the credential to be used
-       		sh 'mvn clean package sonar:sonar -Dsonar.host.url=http://35.224.54.238// -Dsonar.sources=. -Dsonar.tests=. -Dsonar.test.inclusions=**/test/java/servlet/createpage_junit.java -Dsonar.exclusions=**/test/java/servlet/createpage_junit.java'
+       		sh 'mvn clean package sonar:sonar -Dsonar.host.url=http://52.152.224.93// -Dsonar.sources=. -Dsonar.tests=. -Dsonar.test.inclusions=**/test/java/servlet/createpage_junit.java -Dsonar.exclusions=**/test/java/servlet/createpage_junit.java'
         }
 	timeout(time: 1, unit: 'HOURS') { // Just in case something goes wrong, pipeline will be killed after a timeout
 	    def qg = waitForQualityGate() // Reuse taskId previously collected by withSonarQubeEnv
@@ -41,8 +41,8 @@ node {
     }
 //
     stage('Deploy to Test') {
-	deploy adapters: [tomcat7(credentialsId: 'AWStomcat', path: '', url: 'http://18.217.15.48:8080/')], contextPath: '/QAWebapp', war: '**/*.war'
-	jiraSendDeploymentInfo environmentId: 'Test', environmentName: 'QA test', environmentType: 'testing', serviceIds: ['http://18.217.15.48:8080/QAWebapp/'], site: 'devopsbc.atlassian.net', state: 'successful'
+	deploy adapters: [tomcat7(credentialsId: 'AWStomcat', path: '', url: 'http://52.255.157.89:8080/')], contextPath: '/QAWebapp', war: '**/*.war'
+	jiraSendDeploymentInfo environmentId: 'Test', environmentName: 'QA test', environmentType: 'testing', serviceIds: ['http://52.255.157.89:8080/QAWebapp/'], site: 'devopsbc.atlassian.net', state: 'successful'
     }
 //
     stage('Store the Artifacts') {
@@ -60,27 +60,14 @@ node {
     }
 //
     stage('Deploy to Prod') {
-	      deploy adapters: [tomcat7(credentialsId: 'AWStomcat', path: '', url: 'http://3.14.10.76:8080/')], contextPath: '/ProdWebapp', war: '**/*.war'
-	     jiraSendDeploymentInfo environmentId: 'Staging', environmentName: 'Staging', environmentType: 'staging', serviceIds: ['http://3.14.10.76:8080/ProdWebapp'], site: 'devopsbc.atlassian.net', state: 'successful'
-	     jiraSendDeploymentInfo environmentId: 'Prod', environmentName: 'prod', environmentType: 'production', serviceIds: ['http://3.14.10.76:8080/ProdWebapp'], site: 'devopsbc.atlassian.net', state: 'successful'
+	      deploy adapters: [tomcat7(credentialsId: 'AWStomcat', path: '', url: 'http://13.68.144.119/')], contextPath: '/ProdWebapp', war: '**/*.war'
+	     jiraSendDeploymentInfo environmentId: 'Staging', environmentName: 'Staging', environmentType: 'staging', serviceIds: ['http://13.68.144.119:8080/ProdWebapp'], site: 'devopsbc.atlassian.net', state: 'successful'
+	     jiraSendDeploymentInfo environmentId: 'Prod', environmentName: 'prod', environmentType: 'production', serviceIds: ['http://13.68.144.119:8080/ProdWebapp'], site: 'devopsbc.atlassian.net', state: 'successful'
          }
 //
     stage('Sanity Test') {
         buildInfo = rtMaven.run pom: 'Acceptancetest/pom.xml', goals: 'test'
 	publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: '\\Acceptancetest\\target\\surefire-reports', reportFiles: 'index.html', reportName: 'Sanity Test Report', reportTitles: ''])
     }
-	slackSend channel: 'project-dcs', message: "Build Completed ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)", tokenCredentialId: 'slack'
+	slackSend channel: 'devopsbc', message: "Build Completed ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)", tokenCredentialId: 'slack'
  }
- catch (exc) {
- 	echo 'I failed'
-	slackSend channel: 'project-dcs', message: "Build Failed ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)", tokenCredentialId: 'slack'
- }
- finally {
-	if (currentBuild.result == 'failure') {
-            echo 'I am unstable :/'
-	     error " failed"
-        } else {
-            echo 'One way or another, I have finished $currentBuild.result'
-        }
- }
-}
