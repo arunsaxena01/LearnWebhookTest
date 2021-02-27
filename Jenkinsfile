@@ -44,7 +44,11 @@ node {
         buildInfo = rtMaven.run pom: 'functionaltest/pom.xml', goals: 'test'
 	publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: '\\functionaltest\\target\\surefire-reports', reportFiles: 'index.html', reportName: 'UI Test Report', reportTitles: ''])
     }
-	
+     
+       stage('Performance Test') {
+    	echo 'Running BlazeMeterTest' 
+    blazeMeterTest credentialsId: '917117ed-d257-41d2-bb35-47dea13f959c', testId: '9014498.taurus', workspaceId: '756635'
+    }
         stage('Deploy to Prod') {
 	      deploy adapters: [tomcat8(credentialsId: 'tomcat-1', path: '', url: 'http://13.68.144.119:8080/')], contextPath: '/ProdWebapp', onFailure: false, war: '**/*.war'
 	     //jiraSendDeploymentInfo environmentId: 'Staging', environmentName: 'Staging', environmentType: 'staging', serviceIds: ['http://13.68.144.119:8080/ProdWebapp'], site: 'devopsbc.atlassian.net', state: 'successful'
