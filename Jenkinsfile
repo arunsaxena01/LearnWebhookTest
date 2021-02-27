@@ -26,6 +26,17 @@ node {
 //    
 
 //    
+     stage('SonarQube Analysis') {
+        withSonarQubeEnv(credentialsId: 'akssonartoken', installationName: 'sonarqube') { // You can override the credential to be used
+       		sh 'mvn clean package sonar:sonar -Dsonar.host.url=http://52.152.224.93// -Dsonar.sources=. -Dsonar.tests=. -Dsonar.test.inclusions=**/test/java/servlet/createpage_junit.java -Dsonar.exclusions=**/test/java/servlet/createpage_junit.java'
+        }
+	timeout(time: 1, unit: 'HOURS') { // Just in case something goes wrong, pipeline will be killed after a timeout
+	    def qg = waitForQualityGate() // Reuse taskId previously collected by withSonarQubeEnv
+	    if (qg.status != 'OK') {
+	      error "Pipeline aborted due to quality gate failure: ${qg.status}"
+	    }
+	}             
+  }
     stage('Maven build') {
         buildInfo = rtMaven.run pom: 'pom.xml', goals: 'clean install', buildInfo: buildInfo
     }
