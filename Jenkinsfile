@@ -26,7 +26,11 @@ node {
 //    
 
 //    
-
+    stage('SonarQube Analysis') {
+        withSonarQubeEnv(credentialsId: 'akssonartoken', installationName: 'sonarqube') { // You can override the credential to be used
+       		sh 'mvn clean package sonar:sonar -Dsonar.host.url=http://52.152.224.93// -Dsonar.sources=. -Dsonar.tests=. -Dsonar.test.inclusions=**/test/java/servlet/createpage_junit.java -Dsonar.exclusions=**/test/java/servlet/createpage_junit.java'
+        }
+	    
     stage('Maven build') {
         buildInfo = rtMaven.run pom: 'pom.xml', goals: 'clean install', buildInfo: buildInfo
     }
@@ -47,7 +51,7 @@ node {
      
        stage('Performance Test') {
     	echo 'Running BlazeMeterTest' 
-    blazeMeterTest credentialsId: '917117ed-d257-41d2-bb35-47dea13f959c', testId: '9014498.taurus', workspaceId: '756635'
+    //blazeMeterTest credentialsId: '917117ed-d257-41d2-bb35-47dea13f959c', testId: '9014498.taurus', workspaceId: '756635'
     }
         stage('Deploy to Prod') {
 	      deploy adapters: [tomcat8(credentialsId: 'tomcat-1', path: '', url: 'http://13.68.144.119:8080/')], contextPath: '/ProdWebapp', onFailure: false, war: '**/*.war'
