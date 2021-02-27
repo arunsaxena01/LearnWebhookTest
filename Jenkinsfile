@@ -11,7 +11,7 @@ node {
 	
     // Tool name from Jenkins configuration
     
-	rtMaven.tool = "maven"
+	rtMaven.tool = "Maven"
 	
     // Set Artifactory repositories for dependencies resolution and artifacts deployment.
     
