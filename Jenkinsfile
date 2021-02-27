@@ -10,7 +10,7 @@ pipeline {
      // Tool name from Jenkins configuration
     
 	rtMaven.tool = "maven"
-	    
+	stages {    
         stage('Build') { 
             steps { 
                echo 'This is a minimal pipeline.' 
