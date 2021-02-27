@@ -18,56 +18,18 @@ node {
         rtMaven.deployer releaseRepo:'libs-release-local', snapshotRepo:'libs-snapshot-local', server: server
         rtMaven.resolver releaseRepo:'libs-release', snapshotRepo:'libs-snapshot', server: server
 //  
-	slackSend channel: 'devopsbc', message: "started ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)", tokenCredentialId: 'slack'
+	//slackSend channel: 'devopsbc', message: "started ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)", tokenCredentialId: 'slack'
 //	    
     stage('Clone source') {
         git url: 'https://github.com/arunsaxena01/DevOps-Demo-WebApp.git'
     }
 //    
-    stage('SonarQube Analysis') {
-        withSonarQubeEnv(credentialsId: 'sonar-test', installationName: 'sonarqube') { // You can override the credential to be used
-       		sh 'mvn clean package sonar:sonar -Dsonar.host.url=http://52.152.224.93// -Dsonar.sources=. -Dsonar.tests=. -Dsonar.test.inclusions=**/test/java/servlet/createpage_junit.java -Dsonar.exclusions=**/test/java/servlet/createpage_junit.java'
-        }
-	timeout(time: 1, unit: 'HOURS') { // Just in case something goes wrong, pipeline will be killed after a timeout
-	    def qg = waitForQualityGate() // Reuse taskId previously collected by withSonarQubeEnv
-	    if (qg.status != 'OK') {
-	      error "Pipeline aborted due to quality gate failure: ${qg.status}"
-	    }
-	}             
-  }
+
 //    
     stage('Maven build') {
         buildInfo = rtMaven.run pom: 'pom.xml', goals: 'clean install', buildInfo: buildInfo
     }
 //
-    stage('Deploy to Test') {
-	deploy adapters: [tomcat7(credentialsId: 'AWStomcat', path: '', url: 'http://52.255.157.89:8080/')], contextPath: '/QAWebapp', war: '**/*.war'
-	jiraSendDeploymentInfo environmentId: 'Test', environmentName: 'QA test', environmentType: 'testing', serviceIds: ['http://52.255.157.89:8080/QAWebapp/'], site: 'devopsbc.atlassian.net', state: 'successful'
-    }
-//
-    stage('Store the Artifacts') {
-        server.publishBuildInfo buildInfo
-    }
-//
-    stage('UI Test') {
-        buildInfo = rtMaven.run pom: 'functionaltest/pom.xml', goals: 'test'
-	publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: '\\functionaltest\\target\\surefire-reports', reportFiles: 'index.html', reportName: 'UI Test Report', reportTitles: ''])
-    }
-//    
-    stage('Performance Test') {
-    	echo 'Running BlazeMeterTest' 
-//	blazeMeterTest credentialsId: 'BlazeMeter', testId: '7883189.taurus', workspaceId: '470553'
-    }
-//
-    stage('Deploy to Prod') {
-	      deploy adapters: [tomcat7(credentialsId: 'AWStomcat', path: '', url: 'http://13.68.144.119/')], contextPath: '/ProdWebapp', war: '**/*.war'
-	     jiraSendDeploymentInfo environmentId: 'Staging', environmentName: 'Staging', environmentType: 'staging', serviceIds: ['http://13.68.144.119:8080/ProdWebapp'], site: 'devopsbc.atlassian.net', state: 'successful'
-	     jiraSendDeploymentInfo environmentId: 'Prod', environmentName: 'prod', environmentType: 'production', serviceIds: ['http://13.68.144.119:8080/ProdWebapp'], site: 'devopsbc.atlassian.net', state: 'successful'
-         }
-//
-    stage('Sanity Test') {
-        buildInfo = rtMaven.run pom: 'Acceptancetest/pom.xml', goals: 'test'
-	publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: '\\Acceptancetest\\target\\surefire-reports', reportFiles: 'index.html', reportName: 'Sanity Test Report', reportTitles: ''])
-    }
-	slackSend channel: 'devopsbc', message: "Build Completed ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)", tokenCredentialId: 'slack'
+
+
  }
