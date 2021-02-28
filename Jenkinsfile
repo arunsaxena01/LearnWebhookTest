@@ -1,35 +1,33 @@
-//pipeline {
-//agent any
-node ('master') {
+node {
   
-    
+    // Get Artifactory server instance, defined in the Artifactory Plugin administration page
     
     	def server = Artifactory.server "Artifcatory1"
     
- 
+    // Create an Artifactory Maven instance.
     
     	def rtMaven = Artifactory.newMavenBuild()
     	def buildInfo 
 	
-   
+    // Tool name from Jenkins configuration
     
 	rtMaven.tool = "Maven"
 	
-   
+    // Set Artifactory repositories for dependencies resolution and artifacts deployment.
     
         rtMaven.deployer releaseRepo:'libs-release-local', snapshotRepo:'libs-snapshot-local', server: server
         rtMaven.resolver releaseRepo:'libs-release', snapshotRepo:'libs-snapshot', server: server
-  
+//  
 	slackSend channel: 'alerts', message: "Pipeline Started ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)", teamDomain: 'devopsbc', tokenCredentialId: 'slack'
-	    
+//	    
     stage('Clone source') {
         git url: 'https://github.com/arunsaxena01/DevOps-Demo-WebApp.git'
     }
-   
+//    
 
-   
+//    
     stage('Static Code Analysis') {
-        //withSonarQubeEnv(credentialsId: 'akssonartoken', installationName: 'sonarqube') { // You can override the credential to be used
+        withSonarQubeEnv(credentialsId: 'akssonartoken', installationName: 'sonarqube') { // You can override the credential to be used
        	//sh 'mvn clean package sonar:sonar -Dsonar.host.url=http://52.152.224.93// -Dsonar.sources=. -Dsonar.tests=. -Dsonar.test.inclusions=**/test/java/servlet/createpage_junit.java -Dsonar.exclusions=**/test/java/servlet/createpage_junit.java'
         
 	//sh '/var/lib/jenkins/tools/hudson.tasks.Maven_MavenInstallation/Maven/bin/mvn -Dsonar.test.exclusions=**/test/java/servlet/createpage_junit.java -Dsonar.login=admin -Dsonar.password=sonar -Dsonar.tests=. -Dsonar.inclusions=**/test/java/servlet/createpage_junit.java -Dsonar.sources=. sonar:sonar -Dsonar.host.url=http://52.152.224.93:9000'	
@@ -39,7 +37,7 @@ node ('master') {
         buildInfo = rtMaven.run pom: 'pom.xml', goals: 'clean install', buildInfo: buildInfo
     }
 //
-	jiraSendBuildInfo  site: 'fresco3.atlassian.net'
+	jiraSendBuildInfo branch: 'TDB-1', site: 'fresco3.atlassian.net'
     stage('Deploy to Test') {
 	deploy adapters: [tomcat8(credentialsId: 'tomcat-1', path: '', url: 'http://52.255.157.89:8080/')], contextPath: '/QAWebapp', war: '**/*.war'
 	jiraSendDeploymentInfo environmentId: 'Test', environmentName: 'QA test', environmentType: 'testing', serviceIds: ['http://52.255.157.89:8080/QAWebapp/'], site: 'fresco3.atlassian.net', state: 'successful'
@@ -71,5 +69,3 @@ node ('master') {
 	jiraSendDeploymentInfo enableGating: true, environmentId: '', environmentName: '', environmentType: 'production', issueKeys: ['TDB-1'], serviceIds: [''], site: 'fresco3.atlassian.net', state: 'successful'
 	slackSend channel: 'alerts', message: "Pipeline Completed ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)", teamDomain: 'devopsbc', tokenCredentialId: 'slack'
 }
-
-//}
