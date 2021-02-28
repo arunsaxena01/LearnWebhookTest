@@ -1,6 +1,6 @@
 pipeline {
 agent any
-node {
+//node {
   
     
     
@@ -72,4 +72,4 @@ node {
 	slackSend channel: 'alerts', message: "Pipeline Completed ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)", teamDomain: 'devopsbc', tokenCredentialId: 'slack'
 }
 
-}
+//}
