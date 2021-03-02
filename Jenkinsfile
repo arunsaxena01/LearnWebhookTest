@@ -37,10 +37,12 @@ node {
         buildInfo = rtMaven.run pom: 'pom.xml', goals: 'clean install', buildInfo: buildInfo
     }
 //
-	jiraSendBuildInfo branch: 'TDB-1', site: 'fresco3.atlassian.net'
+	jiraSendBuildInfo branch: 'JNG-2', site: 'aksservicedesk.atlassian.net'
     stage('Deploy to Test') {
 	deploy adapters: [tomcat8(credentialsId: 'tomcat-1', path: '', url: 'http://52.255.157.89:8080/')], contextPath: '/QAWebapp', war: '**/*.war'
-	jiraSendDeploymentInfo environmentId: 'Test', environmentName: 'QA test', environmentType: 'testing', serviceIds: ['http://52.255.157.89:8080/QAWebapp/'], site: 'fresco3.atlassian.net', state: 'successful'
+
+	jiraSendDeploymentInfo environmentId: 'JNG-2', environmentName: 'JNG-2', environmentType: 'QA',  site: 'aksservicedesk.atlassian.net'
+
     }
 //
     stage('Store  Artifacts') {
@@ -59,7 +61,7 @@ node {
         stage('Deploy to Prod') {
 	      deploy adapters: [tomcat8(credentialsId: 'tomcat-1', path: '', url: 'http://13.68.144.119:8080/')], contextPath: '/ProdWebapp', onFailure: false, war: '**/*.war'
 	     //jiraSendDeploymentInfo environmentId: 'Staging', environmentName: 'Staging', environmentType: 'staging', serviceIds: ['http://13.68.144.119:8080/ProdWebapp'], site: 'devopsbc.atlassian.net', state: 'successful'
-	     //jiraSendDeploymentInfo environmentId: 'Prod', environmentName: 'prod', environmentType: 'production', serviceIds: ['http://13.68.144.119:8080/ProdWebapp'], site: 'devopsbc.atlassian.net', state: 'successful'
+	     jiraSendDeploymentInfo environmentId: 'JNG-3', environmentName: 'JNG-3', environmentType: 'production',  site: 'aksservicedesk.atlassian.net', state: 'successful'
          }
 	
         stage('Sanity Test') {
