@@ -41,7 +41,7 @@ node {
     stage('Deploy to Test') {
 	deploy adapters: [tomcat8(credentialsId: 'tomcat-1', path: '', url: 'http://52.255.157.89:8080/')], contextPath: '/QAWebapp', war: '**/*.war'
 
-	jiraSendDeploymentInfo environmentId: 'JNG-2', environmentName: 'JNG-2', environmentType: 'testing',  site: 'aksservicedesk.atlassian.net'
+	jiraSendDeploymentInfo environmentId: '', environmentName: '', environmentType: 'testing',  site: 'aksservicedesk.atlassian.net',issueKeys: ['JNG-3'], serviceIds: [''],state: 'successful'
 
     }
 //
@@ -61,7 +61,7 @@ node {
         stage('Deploy to Prod') {
 	      deploy adapters: [tomcat8(credentialsId: 'tomcat-1', path: '', url: 'http://13.68.144.119:8080/')], contextPath: '/ProdWebapp', onFailure: false, war: '**/*.war'
 	     //jiraSendDeploymentInfo environmentId: 'Staging', environmentName: 'Staging', environmentType: 'staging', serviceIds: ['http://13.68.144.119:8080/ProdWebapp'], site: 'devopsbc.atlassian.net', state: 'successful'
-	     jiraSendDeploymentInfo environmentId: 'JNG-3', environmentName: 'JNG-3', environmentType: 'production',  site: 'aksservicedesk.atlassian.net'
+	     jiraSendDeploymentInfo environmentId: '', environmentName: '', environmentType: 'production',  site: 'aksservicedesk.atlassian.net',issueKeys: ['JNG-3'], serviceIds: [''],state: 'successful'
          }
 	
         stage('Sanity Test') {
