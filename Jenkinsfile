@@ -54,7 +54,8 @@ node {
 
 	// Storing Artifacts in Artifactory
     stage('Store  Artifacts') {
-        server.publishBuildInfo buildInfo
+	    echo 'skip artifacstory'
+        //server.publishBuildInfo buildInfo
     }
 	
 	// Perfrom UI Test
